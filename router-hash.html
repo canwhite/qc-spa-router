@@ -1,0 +1,39 @@
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="router-hash.js"></script>
+    </head>
+    <body>
+        <div>
+            <button id="btn">push=>list</button>
+            <button onclick="myClick()">back</button>
+        </div>
+        <script>
+            var router = new Router();
+            //这部分是路由配置
+            //para1:hash值，para2，当然handler里可以有一些操作，在触发的时候执行
+            router.add('/list', function () {
+
+                console.log('局部刷新list');
+
+            })
+            router.add('/detail', function () {
+                console.log('可以刷新为detail了');
+
+            })
+            //给路由变化作监听，触发上边的回调
+            router.listen(router.routes);
+            var btn = document.getElementById('btn');
+            //点击跳转
+            btn.addEventListener('click', function (e) {
+                router.push('/list')
+            
+            })
+            //返回
+            function myClick(){
+                router.back()
+            }
+            
+        </script>
+    </body>
+    </html>

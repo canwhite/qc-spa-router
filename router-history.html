@@ -1,0 +1,32 @@
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="router-history.js"></script>
+    </head>
+    <body>
+        <div>
+            <button id="btn">push=>list</button>
+            <button onclick="myBack()">back</button>
+        </div>
+    
+        <script>
+    
+            var router = new Router();
+            router.add('/list', function () {
+                console.log("刷新list");
+            })
+            router.add('/detail', function () {
+                console.log("刷新detail");
+            })
+            router.listen(router.routes);
+            var btn = document.getElementById('btn');
+            btn.addEventListener('click', function (e) {
+                router.push('/list')
+            })
+            function myBack(){
+                router.back();
+            }
+
+        </script>
+    </body>
+</html>
