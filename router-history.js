@@ -9,6 +9,13 @@ function Router() {
     /* 监听 url 变化 */
     this.listen = function (routes) {
 
+        /*==================================================================
+        由于history.popstate只能监听back/forward/go却不能监听history.pushState，
+        所以需要额外全局复写一下history.pushState事件。让它通过自己对自己的监听事件
+        的触发，做和popstate一样的事儿
+        ====================================================================*/
+
+
         //重写方法，添加自动触发监听的机制
         const _wr = function (type) {
             //拿到history里边的pushState
@@ -24,6 +31,8 @@ function Router() {
               return rv 
             }
         }
+
+
         //将pushState重写,添加事件监听
         history.pushState = _wr('pushState');
         history.replaceState =  _wr("replaceState");
@@ -38,6 +47,8 @@ function Router() {
                 }
             }
         }
+
+
         //给几个事件添加监听,让pushState和replaceState做和popstate一样的事儿
         //因为参数冲突，这里搞一个尾调用，方便传入routes，但是不会当下就执行
         window.addEventListener('popstate',(event)=>{
@@ -50,6 +61,8 @@ function Router() {
             handler(routes);
         });
 
+
+        
     }
     /* 前进到一个新的url */
     this.push = function (path) {
