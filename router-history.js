@@ -10,32 +10,36 @@ function Router() {
     this.listen = function (routes) {
 
         /*==================================================================
-        由于history.popstate只能监听back/forward/go却不能监听history.pushState，
-        所以需要额外全局复写一下history.pushState事件。让它通过自己对自己的监听事件
-        的触发，做和popstate一样的事儿
+        当活动历史记录条目更改时，将触发popstate事件。----这里需要注意，是更改，更改包含正向和负向两个方向
+        如果被激活的历史记录条目是通过对history.pushState（）的调用创建的，
+        或者受到对history.replaceState（）的调用的影响，
+        popstate事件的state属性包含历史条目的状态对象的副本。
+        ------但是不会触发事件;-------------
+        只有在做出浏览器动作时，才会触发该事件，如用户点击浏览器的回退按钮
+        或者在Javascript代码中调用history.back()或者history.forward()方法
+        so:
+        然后我们希望在pushState和replaceState的时候也触发popState事件
+
         ====================================================================*/
-
-
-        //重写方法，添加自动触发监听的机制
+        //--------
+        //1.返回未触发的自定义和自触发事件，取代原来的pushState和replaceState默认定义的事件
         const _wr = function (type) {
-            //拿到history里边的pushState
             const orig = history[type]
-            //闭包，返回一个函数，在外边()调用的时候就会自动触发
+            
             return function () {
-              //this指向的是history，因为_wr指向的就是history属性
               const rv = orig.apply(this, arguments) 
               const e = new Event(type)
               e.arguments = arguments
               window.dispatchEvent(e)
-    
               return rv 
             }
         }
-
-
-        //将pushState重写,添加事件监听
+        //_wr重写返回一个自触发事件，调用的时候会触发对应监听
+        //注意这里只是重写，但是并没有执行
         history.pushState = _wr('pushState');
         history.replaceState =  _wr("replaceState");
+
+
 
         var handler =  function(routes){
             console.log(arguments);
@@ -49,8 +53,8 @@ function Router() {
         }
 
 
-        //给几个事件添加监听,让pushState和replaceState做和popstate一样的事儿
-        //因为参数冲突，这里搞一个尾调用，方便传入routes，但是不会当下就执行
+        //触发监听，让pushState、replaceState拥有和popState一样的事件回调
+        //执行相同的事件
         window.addEventListener('popstate',(event)=>{
             handler(routes);
         });
@@ -64,6 +68,8 @@ function Router() {
 
         
     }
+    //----------------------
+    //2.执行是在这里，这里调用了pushState和replaceState，就会触发监听
     /* 前进到一个新的url */
     this.push = function (path) {
         console.log(path);
@@ -75,6 +81,8 @@ function Router() {
     }
     /* 返回到上一个url */
     this.back = function () {
+        //---------------------------------------
+        //4.back会触发popState的监听，但是这里的监听和pushState是一致的
         window.history.back()
     }
 }
