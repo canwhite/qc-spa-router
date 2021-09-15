@@ -10,6 +10,7 @@ function Router() {
     this.listen = function (routes) {
 
         /*==================================================================
+        Pre:
         当活动历史记录条目更改时，将触发popstate事件。----这里需要注意，是更改，更改包含正向和负向两个方向
         如果被激活的历史记录条目是通过对history.pushState（）的调用创建的，
         或者受到对history.replaceState（）的调用的影响，
@@ -18,11 +19,12 @@ function Router() {
         只有在做出浏览器动作时，才会触发该事件，如用户点击浏览器的回退按钮
         或者在Javascript代码中调用history.back()或者history.forward()方法
         so:
-        然后我们希望在pushState和replaceState的时候也触发popState事件
+        我们希望在pushState和replaceState的时候具有和popState一样的功能
 
         ====================================================================*/
         //--------
-        //1.返回未触发的自定义和自触发事件，取代原来的pushState和replaceState默认定义的事件
+        //1.返回未触发的自定义、自触发事件，取代原来的pushState和replaceState默认定义的事件
+        //通过给history同名事件赋值重写
         const _wr = function (type) {
             const orig = history[type]
             
@@ -34,27 +36,25 @@ function Router() {
               return rv 
             }
         }
-        //_wr重写返回一个自触发事件，调用的时候会触发对应监听
-        //注意这里只是重写，但是并没有执行
         history.pushState = _wr('pushState');
         history.replaceState =  _wr("replaceState");
 
 
-
+        //从预置数组中查找更改，
         var handler =  function(routes){
             console.log(arguments);
             var pathname = window.location.pathname
             for (var i = 0; i < routes.length; i ++) {
                 if (pathname === routes[i].re) {
                     //对上号了触发数组中的回调
-                    routes[i].handler.apply({})
+                    routes[i].handler.apply({})//执行路由handler
                 }
             }
         }
 
-
-        //触发监听，让pushState、replaceState拥有和popState一样的事件回调
-        //执行相同的事件
+        //--------------------------------------------------
+        //3.触发监听，让pushState、replaceState拥有和popState一样的事件回调
+        //执行相同的事件,就是从预置数组中查找，而不是新增
         window.addEventListener('popstate',(event)=>{
             handler(routes);
         });
@@ -83,6 +83,7 @@ function Router() {
     this.back = function () {
         //---------------------------------------
         //4.back会触发popState的监听，但是这里的监听和pushState是一致的
+        //都是从数组中查找
         window.history.back()
     }
 }
